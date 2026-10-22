@@ -1,4 +1,6 @@
 html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; user-select: none; }
+/* display 를 정한 요소(#bars 의 flex 등)도 hidden 속성이면 반드시 숨긴다. 없으면 막대가 숨겨지지 않고 마지막 자리에 남는다 */
+[hidden] { display: none !important; }
 body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
 
 #cat { position: absolute; left: 0; top: 0; transform-origin: 50% 100%; will-change: transform, left, top; }
