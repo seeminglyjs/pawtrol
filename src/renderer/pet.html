@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <link rel="stylesheet" href="pet.css">
+</head>
+<body>
+  <div id="cat"><canvas id="cv"></canvas></div>
+  <div id="bubble" hidden>
+    <div id="msg"></div>
+    <div id="bar">
+      <span id="pos"></span>
+      <span>
+        <button id="next">다음</button>
+        <button id="close">닫기</button>
+      </span>
+    </div>
+  </div>
+  <script src="queue.js"></script>
+  <script src="sprite-cat.js"></script>
+  <script src="pet.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; user-select: none; }
+body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+
+#cat { position: absolute; left: 0; top: 0; transform-origin: 50% 100%; will-change: transform, left, top; }
+#cv { display: block; image-rendering: pixelated; }
+
+/* 도트 느낌의 말풍선: 갈색 2px 테두리 + 아래 꼬리 */
+#bubble {
+  position: absolute; width: 240px; box-sizing: border-box;
+  background: #fffdf8; color: #5a3420; border: 2px solid #5a3420; border-radius: 10px;
+  padding: 8px 12px; font-size: 13px; line-height: 1.5; word-break: keep-all;
+  box-shadow: 3px 3px 0 rgba(90, 52, 32, 0.18);
+}
+#bubble::after {
+  content: ""; position: absolute; left: var(--tail-x, 50%); bottom: -9px; width: 12px; height: 12px;
+  background: #fffdf8; border-right: 2px solid #5a3420; border-bottom: 2px solid #5a3420;
+  transform: translateX(-50%) rotate(45deg);
+}
+#bar { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px; gap: 8px; }
+#bar > * { white-space: nowrap; }
+#bar button {
+  font: inherit; font-size: 12px; color: #5a3420; background: #fff4e3; border: 1.5px solid #5a3420;
+  border-radius: 6px; padding: 1px 8px; cursor: pointer; margin-left: 4px;
+}
+#bar button:hover { background: #ffe6c2; }
+
+.heart, .zzz { position: absolute; pointer-events: none; font-weight: bold; }
+.heart { color: #e5677f; font-size: 18px; animation: rise 900ms ease-out forwards; }
+.zzz { color: #6d6f8a; font-size: 14px; animation: drift 2400ms ease-out forwards; }
+@keyframes rise { from { opacity: 1; transform: translateY(0) scale(0.8); } to { opacity: 0; transform: translateY(-42px) scale(1.15); } }
+@keyframes drift { from { opacity: 0.9; transform: translate(0, 0); } to { opacity: 0; transform: translate(14px, -40px); } }

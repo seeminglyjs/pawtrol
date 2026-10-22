@@ -1,0 +1,14 @@
+{
+  "name": "pawtrol",
+  "version": "0.1.0",
+  "private": true,
+  "description": "바탕화면 도트 고양이가 Claude Code 세션 상태와 PC 상태를 알려 주는 데스크톱 펫",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "devDependencies": {
+    "electron": "44.7.0"
+  }
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>pawtrol 설정</title>
+  <style>
+    :root { --ink: #5a3420; --bg: #fff8ee; --card: #ffffff; --line: #ead9c4; --muted: #8a6a55; --accent: #e9875f; }
+    body { margin: 0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
+    main { padding: 18px 20px 24px; }
+    h1 { font-size: 18px; margin: 0 0 14px; }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+    h2 { font-size: 14px; margin: 0 0 10px; }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+    .row > label { min-width: 64px; color: var(--muted); }
+    button { font: inherit; color: var(--ink); background: #fff4e3; border: 1.5px solid var(--ink); border-radius: 8px; padding: 3px 10px; cursor: pointer; }
+    button.on { background: var(--ink); color: #fff; }
+    input[type=number] { width: 56px; font: inherit; padding: 2px 4px; border: 1px solid var(--line); border-radius: 6px; }
+    input[type=color] { width: 34px; height: 24px; border: 1px solid var(--line); border-radius: 6px; padding: 0; background: none; }
+    #preview { image-rendering: pixelated; width: 160px; height: 144px; background: #fde4be; border-radius: 10px; display: block; }
+    .hint { color: var(--muted); font-size: 12px; }
+    #hookState { font-weight: bold; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>pawtrol 설정</h1>
+
+  <section>
+    <h2>모습</h2>
+    <div class="row" style="align-items:flex-start">
+      <canvas id="preview"></canvas>
+      <div>
+        <div class="row"><label>프리셋</label>
+          <button data-preset="gray">회색 고등어</button><button data-preset="cheese">치즈</button><button data-preset="black">턱시도</button>
+        </div>
+        <div class="row"><label>색</label>
+          털 <input type="color" id="cf"> 무늬 <input type="color" id="cd"> 눈동자 <input type="color" id="cg">
+        </div>
+        <div class="row"><label>크기</label>
+          <button data-scale="2">2배</button><button data-scale="3">3배</button><button data-scale="4">4배</button>
+        </div>
+        <div class="row"><label></label><span><input type="checkbox" id="sticker"> <span>흰 테두리(어두운 배경화면용)</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Claude 알림</h2>
+    <div class="row"><input type="checkbox" id="nDone"> 응답이 끝나면 알림</div>
+    <div class="row"><input type="checkbox" id="nWaiting"> 권한 승인 · 입력을 기다리면 알림</div>
+    <div class="row"><input type="checkbox" id="nWorking"> Claude 가 일하는 동안 노트북 두드리기</div>
+  </section>
+
+  <section>
+    <h2>PC 상태</h2>
+    <div class="row"><input type="checkbox" id="nSystem"> 과부하가 시작될 때 말풍선</div>
+    <div class="row">CPU <input type="number" id="cpuT" min="50" max="100"> % 이상이 <input type="number" id="cpuS" min="1" max="120"> 초 이어지면 바쁜 동작</div>
+    <div class="row">RAM <input type="number" id="ramT" min="50" max="100"> % 이상이면 피곤한 표정</div>
+    <div class="row"><input type="number" id="sleepM" min="1" max="120"> 분 동안 손대지 않고 알림도 없으면 잠</div>
+  </section>
+
+  <section>
+    <h2>연동</h2>
+    <div class="row">Claude 훅: <span id="hookState">확인 중</span>
+      <button id="hookInstall">설치</button><button id="hookRemove">제거</button></div>
+    <div class="hint">설치하면 ~/.claude/settings.json 에 훅 3개(요청 보냄 · 응답 끝 · 알림)를 더합니다. 다른 설정은 그대로 둡니다.</div>
+    <div class="row">알림 받는 포트 <input type="number" id="port" min="1024" max="65535" style="width:72px"></div>
+    <div class="row"><input type="checkbox" id="login"> 윈도우를 켤 때 함께 실행</div>
+  </section>
+</main>
+<script src="sprite-cat.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>
