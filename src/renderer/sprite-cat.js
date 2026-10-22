@@ -20,12 +20,40 @@
     var paint = function (y, a, b, ch) { for (var x = a; x <= b; x++) { var yy = y + OY, xx = x + OX; if (g[yy] && g[yy][xx] && g[yy][xx] !== '.') put(x, y, ch); } };
     var rows = function (list, dy, ch) { list.forEach(function (s) { span(s[0] + dy, s[1], s[2], ch); }); };
 
-    var loaf = !!pose.loaf, dangle = !!pose.dangle, headOnly = !!pose.headOnly;
+    var loaf = !!pose.loaf, dangle = !!pose.dangle, headOnly = !!pose.headOnly, front = !!pose.laptop;
     var bY = loaf ? 3 : -(pose.lift || 0);
     var ta = pose.tail || 0;
+    // 꼬리 흔들림 칸 수. k = 뿌리 0 → 끝 1. 끝으로 갈수록 크게 흔들린다.
+    // 물결 동작은 두 번 시도했으나 어색하다는 판단으로 넣지 않는다(2026-10-22 사용자 결정)
+    var tailOff = function (k) { return Math.round(ta * k * k); };
+
+    // 노트북 자세: 정면을 보고 앉아 몸과 앞발은 노트북 뚜껑에 가려진다(2026-10-22 사용자 결정).
+    // 앞발 대신 양 어깨가 번갈아 들썩여 키보드를 두드리는 것을 보인다.
+    if (front && !headOnly) {
+      // 꼬리: 뚜껑 오른쪽으로 크게 빠져나와 물음표처럼 말려 올라간다. 끝으로 갈수록 크게 흔들린다
+      var TAIL = [[26, 20], [23, 23], [20, 25], [17, 26], [14, 26], [12, 25], [11, 24]];
+      var prevTx = null;
+      for (y = 26; y >= 11; y--) {
+        var seg = 0;
+        while (seg < TAIL.length - 2 && y < TAIL[seg + 1][0]) seg++;
+        var p0 = TAIL[seg], p1 = TAIL[seg + 1], t = (p0[0] - y) / (p0[0] - p1[0]);
+        var tk = (26 - y) / 15, tx = Math.round(p0[1] + (p1[1] - p0[1]) * t) + tailOff(tk);
+        var tw = y >= 16 ? 2 : 1;
+        span(y, tx, tx + tw, 'f');
+        // 물결로 윗줄과 두 칸 넘게 어긋나면 그 사이를 이어 꼬리가 끊겨 보이지 않게 한다
+        if (prevTx !== null && Math.abs(tx - prevTx) > 1) span(y, Math.min(tx, prevTx + 1), Math.max(tx, prevTx - 1), 'f');
+        prevTx = tx;
+        if (y === 15 || y === 19 || y === 23) paint(y, tx, tx + tw, 'd');
+        if (y <= 12) paint(y, tx, tx, 'l');
+      }
+      for (y = 17; y <= 26; y++) span(y, 4, 20, 'f');
+      var sh = pose.laptop === 1 ? 0 : 1;
+      rows([[18 - sh, 2, 4], [18, 2, 4]], 0, 'f');
+      rows([[17 + sh, 20, 22], [18, 20, 22]], 0, 's');
+    }
 
     // 아이콘용(headOnly)은 머리만 그린다
-    if (!headOnly) {
+    if (!headOnly && !front) {
     // 꼬리
     if (loaf) {
       // 바닥을 따라 앞으로 감은 꼬리
@@ -37,7 +65,7 @@
     } else {
       // 뿌리는 고정, 끝으로 갈수록 크게 흔들린다
       for (y = 7; y <= 19; y++) {
-        var k = (19 - y) / 12, off = Math.round(ta * k * k);
+        var k = (19 - y) / 12, off = tailOff(k);
         var w = y <= 8 ? [31, 32] : y >= 17 ? [29, 31] : [30, 32];
         span(y + bY, w[0] + off, w[1] + off, 'f');
         if (y === 10 || y === 13 || y === 16) paint(y + bY, w[0] + off, w[1] + off, 'd');
@@ -98,6 +126,13 @@
     var bl = pose.blink || 0;
     [6, 16].forEach(function (cx) {
       if (bl === 2) { put(cx, 11 + hY, 'o'); put(cx + 3, 11 + hY, 'o'); span(12 + hY, cx + 1, cx + 2, 'o'); return; }
+      // 아래를 봄(노트북 자판을 내려다봄): 윗눈꺼풀이 내려오고 눈동자·반짝임이 아래쪽에 모인다
+      if (pose.lookDown && bl === 0) {
+        span(10 + hY, cx, cx + 3, 'o');
+        span(11 + hY, cx, cx + 3, 'e'); span(12 + hY, cx, cx + 3, 'e'); span(13 + hY, cx + 1, cx + 2, 'e');
+        put(cx + 1, 12 + hY, 'h'); put(cx + 2, 13 + hY, 'g');
+        return;
+      }
       if (bl === 1) span(11 + hY, cx, cx + 3, 'o');
       else { span(9 + hY, cx + 1, cx + 2, 'e'); span(10 + hY, cx, cx + 3, 'e'); span(11 + hY, cx, cx + 3, 'e'); }
       span(12 + hY, cx, cx + 3, 'e'); span(13 + hY, cx + 1, cx + 2, 'g');
@@ -109,25 +144,16 @@
     else [[10, 14], [11, 15], [12, 14], [13, 14], [14, 15], [15, 14]].forEach(function (q) { put(q[0], q[1] + hY, 'o'); });
     rows([[13, 4, 5], [14, 4, 5], [13, 20, 21], [14, 20, 21]], hY, 'p');
 
-    // 노트북: 뚜껑 뒷면이 보이고, 앞발이 뚜껑 위로 올라와 번갈아 두드린다
+    // 노트북: 뚜껑 뒷면이 고양이 몸과 앞발을 가린다. 키보드는 뚜껑 너머(고양이 쪽)에 있어 보이지 않는다
     if (pose.laptop) {
-      var lt = 18;
-      for (y = lt; y <= 26; y++) span(y, 3, 19, 'm');
-      span(lt, 3, 19, 'k'); span(26, 3, 19, 'k');
-      for (y = lt; y <= 26; y++) { put(3, y, 'k'); put(19, y, 'k'); }
-      span(lt + 1, 4, 10, 'M');
+      var lt = 19;
+      for (y = lt; y <= 26; y++) span(y, 2, 21, 'm');
+      span(lt, 2, 21, 'k'); span(26, 2, 21, 'k');
+      for (y = lt; y <= 26; y++) { put(2, y, 'k'); put(21, y, 'k'); }
+      span(lt + 1, 3, 10, 'M');
       // 뚜껑 가운데 발자국 무늬
-      put(10, 22, 'M'); put(12, 22, 'M'); put(11, 21, 'M'); put(10, 23, 'M'); put(11, 23, 'M'); put(12, 23, 'M');
-      span(27, 1, 21, 'k');
-      // 앞발은 흰 주둥이와 겹치므로 자기 테두리를 직접 그린다. 한쪽이 올라가면 다른 쪽은 내려간다
-      var a = pose.laptop === 1 ? 0 : 1;
-      var paw = function (x0, top) {
-        span(top, x0 + 1, x0 + 3, 'o');
-        put(x0, top + 1, 'o'); span(top + 1, x0 + 1, x0 + 3, 'w'); put(x0 + 4, top + 1, 'o');
-        put(x0, top + 2, 'o'); span(top + 2, x0 + 1, x0 + 3, 'c'); put(x0 + 4, top + 2, 'o');
-      };
-      paw(4, lt - 3 + a);
-      paw(12, lt - 2 - a);
+      put(10, 22, 'M'); put(13, 22, 'M'); put(11, 21, 'M'); put(12, 21, 'M'); put(10, 24, 'M'); put(11, 24, 'M'); put(12, 24, 'M'); put(13, 24, 'M'); put(11, 23, 'M'); put(12, 23, 'M');
+      span(27, 0, 23, 'k');
     }
     // 땀방울
     if (pose.sweat) { put(24, 2 + hY, 'Q'); span(3 + hY, 24, 25, 'q'); span(4 + hY, 24, 25, 'q'); }

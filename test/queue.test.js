@@ -44,6 +44,18 @@ test('세션에서 새 요청을 보내면 그 세션 알림은 지운다', () =
   assert.strictEqual(q.current().text, 'B');
 });
 
+test('맨 앞에 넣은 알림(자리 비움 요약)이 먼저 보이고, 나머지는 그 뒤로 이어진다', () => {
+  const q = createQueue();
+  q.add({ key: 'a', kind: 'done', text: 'A' });
+  q.add({ key: 'b', kind: 'done', text: 'B' });
+  q.next();
+  q.add({ key: 'away', kind: 'away', text: '다녀왔어요' }, { front: true });
+  assert.strictEqual(q.current().text, '다녀왔어요');
+  assert.deepStrictEqual(q.position(), { index: 1, total: 3 });
+  q.next();
+  assert.strictEqual(q.current().text, 'A');
+});
+
 test('지금 보는 알림을 닫으면 다음 알림이 보이고, 다 닫으면 비어 있다', () => {
   const q = createQueue();
   q.add({ key: 'a', kind: 'done', text: 'A' });

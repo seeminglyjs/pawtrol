@@ -8,8 +8,15 @@
     var items = [];
     var idx = 0;
     return {
-      add: function (item) {
+      // opts.front: 맨 앞에 넣고 그 칸을 보여 준다(자리 비움 요약처럼 먼저 읽어야 하는 알림)
+      add: function (item, opts) {
         var i = items.findIndex(function (x) { return x.key === item.key; });
+        if (opts && opts.front) {
+          if (i >= 0) items.splice(i, 1);
+          items.unshift(item);
+          idx = 0;
+          return;
+        }
         if (i >= 0) {
           // 응답 끝 알림이 아직 남아 있으면, 그 뒤에 오는 "입력을 기다림" 알림은 같은 말이라 덮지 않는다
           if (items[i].kind === 'done' && item.kind === 'idle') return;

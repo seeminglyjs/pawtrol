@@ -30,6 +30,10 @@
     document.querySelectorAll('[data-card]').forEach(function (c) { c.checked = !!s.statusCard[c.dataset.card]; });
     document.querySelectorAll('[data-interval]').forEach(function (b) { b.classList.toggle('on', +b.dataset.interval === s.statusInterval); });
     $('headBars').checked = s.headBars;
+    $('nCustom').checked = s.notify.custom;
+    document.querySelectorAll('.portText').forEach(function (el) { el.textContent = s.port; });
+    $('awayOn').checked = s.away.enabled; $('awayM').value = s.away.minutes;
+    $('restOn').checked = s.rest.enabled; $('restM').value = s.rest.minutes; $('breakM').value = s.rest.breakMinutes;
     drawPreview();
   }
 
@@ -63,6 +67,15 @@
   });
   document.querySelectorAll('[data-interval]').forEach(function (b) { b.onclick = function () { save({ statusInterval: +b.dataset.interval }); }; });
   $('headBars').onchange = function () { save({ headBars: $('headBars').checked }); };
+  $('nCustom').onchange = function () { save({ notify: { custom: $('nCustom').checked } }); };
+  $('awayOn').onchange = function () { save({ away: { enabled: $('awayOn').checked } }); };
+  $('restOn').onchange = function () { save({ rest: { enabled: $('restOn').checked } }); };
+  [['awayM', 'away', 'minutes', 1, 240], ['restM', 'rest', 'minutes', 10, 240], ['breakM', 'rest', 'breakMinutes', 1, 60]].forEach(function (p) {
+    $(p[0]).onchange = function () {
+      var v = num(p[0], p[3], p[4]); if (v === null) { fill(); return; }
+      var n = {}; n[p[1]] = {}; n[p[1]][p[2]] = v; save(n);
+    };
+  });
   $('hookInstall').onclick = function () { paw.installHooks().then(refreshHook); };
   $('hookRemove').onclick = function () { paw.removeHooks().then(refreshHook); };
   paw.onSettings(function (n) { s = n; fill(); });

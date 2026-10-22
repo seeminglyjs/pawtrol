@@ -73,6 +73,15 @@
   </section>
 
   <section>
+    <h2>기타 알림</h2>
+    <div class="row"><input type="checkbox" id="nCustom"> 범용 알림 받기</div>
+    <div class="hint">명령 끝에 붙이면 말풍선으로 알려 줍니다: curl -s -d "끝났어요" http://127.0.0.1:<span class="portText"></span>/notify</div>
+    <div class="row"><input type="checkbox" id="awayOn"> <input type="number" id="awayM" min="1" max="240"> 분 넘게 자리를 비웠다 돌아오면 그사이 알림 요약</div>
+    <div class="row"><input type="checkbox" id="restOn"> <input type="number" id="restM" min="10" max="240"> 분 쉬지 않고 쓰면 휴식 알림</div>
+    <div class="row"><input type="number" id="breakM" min="1" max="60"> 분 넘게 손을 떼면 쉰 것으로 봄</div>
+  </section>
+
+  <section>
     <h2>연동</h2>
     <div class="row">Claude 훅: <span id="hookState">확인 중</span>
       <button id="hookInstall">설치</button><button id="hookRemove">제거</button></div>

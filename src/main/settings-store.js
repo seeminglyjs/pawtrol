@@ -7,7 +7,9 @@ const DEFAULTS = {
   colors: null, // null 이면 프리셋 색을 그대로 쓴다. { f, d, g } 를 넣으면 그 칸만 바꾼다
   scale: 3, // 도트 1칸 = 화면 3px. 40×34칸 고양이가 120×102px 로 보인다
   sticker: false,
-  notify: { done: true, waiting: true, working: true, system: true },
+  notify: { done: true, waiting: true, working: true, system: true, custom: true }, // custom = 범용 알림 주소(/notify)
+  away: { enabled: true, minutes: 3 }, // 이 시간 넘게 잠금·절전했다 돌아오면 그사이 알림 요약 · 2026-10-22 사용자 승인(가정)
+  rest: { enabled: true, minutes: 50, breakMinutes: 5 }, // 쉬지 않고 50분이면 휴식 알림, 5분 손 떼면 쉰 것으로 봄 · 2026-10-22 사용자 승인(가정)
   cpuThreshold: 85, // 가정(검증 필요) · 2026-10-22 사용자 승인
   cpuSeconds: 10, // 짧게 튀는 사용률에 반응하지 않도록 거는 지속 시간. 가정(검증 필요)
   ramThreshold: 90, // 가정(검증 필요)

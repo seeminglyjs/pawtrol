@@ -24,6 +24,28 @@ CPU·RAM 알림 글을 누르면 작업 관리자가 열립니다.
 
 기준값(85% · 10초 · 90% · 5분)은 모두 가정이며 설정 창에서 바꿀 수 있습니다.
 
+## 범용 알림 · 자리 비움 · 휴식
+
+어떤 명령이든 끝에 한 줄을 붙이면 결과를 말풍선으로 받습니다. 이 PC 안(127.0.0.1)에서만 받습니다.
+
+```bash
+npm test; curl -s -d "테스트 끝났어요" http://127.0.0.1:47321/notify
+```
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:47321/notify -ContentType 'text/plain; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes('백필 끝났어요'))
+```
+
+JSON 으로 보내면 이름표(`key`, 같은 이름표끼리 하나로 합침)와 누를 때 열 주소(`link`, http·https 만)를 붙일 수 있습니다.
+
+```bash
+curl -s -H "Content-Type: application/json" -d '{"text":"dev 배포 끝","key":"deploy","link":"https://github.com/"}' http://127.0.0.1:47321/notify
+```
+
+- 3분 넘게 잠금·절전했다 돌아오면, 그사이 온 알림 수를 맨 앞 말풍선으로 알려 줍니다.
+- 마우스·키보드를 쉬지 않고 50분 쓰면 기지개를 켜며 휴식을 권합니다. 5분 넘게 손을 떼면 쉰 것으로 봅니다.
+- 세 기준값은 가정이며 설정 창 "기타 알림"에서 바꿉니다.
+
 ## 실행
 
 ```bash

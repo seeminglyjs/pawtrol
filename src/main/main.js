@@ -1,5 +1,5 @@
 // pawtrol 메인 프로세스: 모니터마다 투명 펫 창 · 훅 이벤트 서버 · 알림 대기열 · CPU·RAM 감시 · 트레이 · 설정 창.
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, shell, powerMonitor } = require('electron');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -12,6 +12,7 @@ const { installHooks, removeHooks, hookStatus } = require('./hook-installer');
 const { createSessionIndex, sessionLink } = require('./claude-sessions');
 const { catIcon, trayIcon } = require('./icon');
 const { createQueue } = require('../renderer/queue');
+const { createRestTracker } = require('./rest');
 
 // 화면 전체를 덮는 투명 고양이 창 뒤에 있는 창(설정 창)을 "가려졌다"고 보고 그리기를 멈추는 크로미엄 기능을 끈다.
 // 설정 창이 빈 화면으로 보인 원인 후보다(2026-10-22 사용자 제보, 재현은 못 함).
@@ -32,6 +33,8 @@ const sessions = createSessionIndex();
 const waitingFocus = new Map(); // 알림 key → { session, at } : 사용자가 그 세션을 열어 보면 알림을 지운다
 let lastStatus = { cpu: 0, ram: 0, cpuHigh: false, ramHigh: false };
 let diskFreeGB = null;
+let awayStart = null, awayCount = 0; // 잠금·절전을 시작한 시각과 그사이 온 알림 수
+let restTracker = null;
 
 // 응답 끝 신호를 못 받은 세션(창을 닫음 · 강제 종료)이 영원히 "일하는 중"으로 남지 않게 지우는 시간. 가정(검증 필요).
 const WORKING_EXPIRE_MS = 30 * 60 * 1000;
@@ -115,8 +118,37 @@ function pushBubble() {
 }
 function notify(item) {
   item.at = Date.now();
+  if (awayStart !== null) awayCount++;
   queue.add(item);
   pushBubble();
+  sendActive('alert');
+}
+
+// 범용 알림: key 를 붙여 보내면 같은 key 끼리 합치고, 없으면 보낼 때마다 따로 쌓는다
+let customSeq = 0;
+function onCustomNotify(n) {
+  if (!store.get().notify.custom || Date.now() < mutedUntil) return;
+  notify({
+    key: 'custom:' + (n.key || `${Date.now()}-${customSeq++}`), kind: 'custom', text: n.text,
+    action: n.link ? { type: 'url', url: n.link } : null,
+  });
+}
+
+function formatDuration(ms) {
+  const m = Math.round(ms / 60000);
+  return m < 60 ? `${m}분` : `${Math.floor(m / 60)}시간${m % 60 ? ' ' + (m % 60) + '분' : ''}`;
+}
+function onAwayStart() { if (awayStart === null) { awayStart = Date.now(); awayCount = 0; } }
+function onAwayEnd() {
+  if (awayStart === null) return;
+  const dur = Date.now() - awayStart, count = awayCount;
+  awayStart = null; awayCount = 0;
+  const a = store.get().away;
+  if (!a.enabled || dur < a.minutes * 60 * 1000) return;
+  if (count > 0) {
+    queue.add({ key: 'away', kind: 'away', at: Date.now(), text: `다녀왔어요! 자리 비운 ${formatDuration(dur)} 동안 알림 ${count}개가 왔어요.` }, { front: true });
+    pushBubble();
+  }
   sendActive('alert');
 }
 function removeNotify(key) {
@@ -130,6 +162,9 @@ function openAction(item) {
   if (item.action.type === 'session') {
     const link = sessionLink(item.action.localId);
     if (link) shell.openExternal(link);
+    removeNotify(item.key);
+  } else if (item.action.type === 'url') {
+    shell.openExternal(item.action.url);
     removeNotify(item.key);
   } else if (item.action.type === 'taskmgr') {
     spawn('taskmgr.exe', [], { detached: true, stdio: 'ignore' }).unref();
@@ -182,7 +217,10 @@ const sendWorking = () => broadcast('working', { count: working.size });
 
 function startServer() {
   if (server) server.close();
-  server = startEventServer(store.get().port, (ev, p) => { onHookEvent(ev, p).catch(e => DEBUG && console.log('[hook] 처리 실패', e)); },
+  server = startEventServer(store.get().port, {
+    onHook: (ev, p) => { onHookEvent(ev, p).catch(e => DEBUG && console.log('[hook] 처리 실패', e)); },
+    onNotify: onCustomNotify,
+  },
     err => notify({ key: 'server', kind: 'error', text: `알림을 받을 포트(${store.get().port})를 열지 못했어요. 설정에서 다른 포트를 골라 주세요. (${err.code})` }));
 }
 
@@ -252,6 +290,7 @@ function applySettings(s) {
   }
   tray.setImage(trayIcon(s));
   sysmon.setOptions({ cpuThreshold: s.cpuThreshold, cpuSeconds: s.cpuSeconds, ramThreshold: s.ramThreshold });
+  restTracker.setOptions({ restMinutes: s.rest.minutes, breakMinutes: s.rest.breakMinutes });
   app.setLoginItemSettings({ openAtLogin: !!s.openAtLogin });
 }
 
@@ -285,6 +324,21 @@ app.whenReady().then(() => {
   setInterval(() => {
     const m = store.get().statusInterval;
     if (m > 0 && Date.now() - lastCardAt >= m * 60 * 1000 && Date.now() >= mutedUntil) { lastCardAt = Date.now(); sendActive('show-card'); }
+  }, 30 * 1000);
+
+  // 자리 비움: 화면 잠금·절전이 시작과 끝
+  powerMonitor.on('lock-screen', onAwayStart);
+  powerMonitor.on('suspend', onAwayStart);
+  powerMonitor.on('unlock-screen', onAwayEnd);
+  powerMonitor.on('resume', onAwayEnd);
+  // 휴식 알림: 30초마다 마우스·키보드를 손 뗀 시간을 본다(판정 단위가 분이라 30초면 충분)
+  restTracker = createRestTracker({ restMinutes: s.rest.minutes, breakMinutes: s.rest.breakMinutes });
+  setInterval(() => {
+    const r = store.get().rest;
+    if (!restTracker.update({ idleSec: powerMonitor.getSystemIdleTime(), at: Date.now() })) return;
+    if (!r.enabled || Date.now() < mutedUntil || awayStart !== null) return;
+    notify({ key: 'rest', kind: 'rest', text: `${r.minutes}분째 쉬지 않았어요. 잠깐 기지개 켜요!` });
+    sendActive('stretch');
   }, 30 * 1000);
 
   // 모니터를 꽂거나 빼면 창을 다시 깔고, 크기·작업 표시줄만 바뀌면 창 크기만 맞춘다(고양이 위치 유지)

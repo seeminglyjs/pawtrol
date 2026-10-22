@@ -20,7 +20,7 @@
   var S = {
     x: 200, y: 0, dir: -1, mode: 'idle', modeUntil: 0,
     blink: 0, ear: 0, workingCount: 0, sys: { cpu: 0, ram: 0, cpuHigh: false, ramHigh: false },
-    lastActivity: Date.now(), hopAt: 0, petUntil: 0,
+    lastActivity: Date.now(), hopAt: 0, petUntil: 0, stretchAt: 0,
     drag: null, fallV: 0, landAt: 0, grid: null, ignoring: true, globalDrag: false,
   };
 
@@ -80,7 +80,10 @@
   }
 
   // ── 매 프레임 ──────────────────────────────────────────
-  var last = performance.now(), walkT = 0, typeT = 0, zzzAt = 0;
+  var last = performance.now(), walkT = 0, typeT = 0, zzzAt = 0, tapAt = 0, tapSide = false;
+  var TAP_WORDS = ['탁', '톡', '타닥'];
+  // 기지개 길이(가정, 화면 확인)
+  var STRETCH_MS = 1600;
   function frame(now) {
     var dt = Math.min(50, now - last); last = now;
     requestAnimationFrame(frame);
@@ -106,8 +109,16 @@
       var fast = S.sys.cpuHigh;
       // 두드리는 간격: 보통 180ms, CPU 과부하면 90ms(가정, 화면 확인)
       pose.laptop = Math.floor(typeT / (fast ? 90 : 180)) % 2 + 1;
-      pose.head = 1; pose.sweat = fast;
+      pose.head = 1; pose.sweat = fast; pose.lookDown = true;
       if (tired) pose.blink = Math.max(1, pose.blink);
+      // 타자 소리: 뚜껑 양쪽 위에서 번갈아 "탁·톡"이 튀어 오른다. 간격 260ms, 과부하면 140ms(가정, 화면 확인)
+      if (now - tapAt > (fast ? 140 : 260)) {
+        tapAt = now; tapSide = !tapSide;
+        // 뚜껑 윗모서리(스프라이트 4·24열, 22행) 바로 위에서 튀어 오른다
+        var gx = tapSide ? 2 : 24;
+        spawn('tap', TAP_WORDS[Math.floor(Math.random() * TAP_WORDS.length)],
+          S.x + (S.dir > 0 ? W - 1 - gx : gx) * sc - 6, S.y + 22 * sc - 10);
+      }
     } else if (sleepy(wall)) {
       S.mode = 'sleep';
       pose.loaf = true; pose.blink = 2; pose.chest = br < 0 ? 1 : 0; pose.tail = 0;
@@ -136,6 +147,7 @@
       if (tired) { pose.blink = Math.max(1, pose.blink); pose.head = 1; }
     }
     if (wall < S.petUntil) { pose.blink = 2; pose.puff = 1; }
+    if (S.stretchAt && now - S.stretchAt < STRETCH_MS) { pose.blink = 2; pose.laptop = 0; pose.loaf = false; pose.legs = null; pose.lift = 0; }
     render(pose);
 
     // 위치와 눌림(폴짝 · 착지 · 쓰다듬기)
@@ -148,6 +160,9 @@
       else { var a = Math.sin((p - 0.7) / 0.3 * Math.PI); sx = 1 + 0.1 * a; sy = 1 - 0.1 * a; }
     } else if (S.landAt && now - S.landAt < 260) {
       var a2 = Math.sin((now - S.landAt) / 260 * Math.PI); sx = 1 + 0.14 * a2; sy = 1 - 0.14 * a2;
+    } else if (S.stretchAt && now - S.stretchAt < STRETCH_MS) {
+      // 기지개: 옆으로 길게 늘였다가(눈 감고) 제자리로 돌아온다
+      var a4 = Math.sin((now - S.stretchAt) / STRETCH_MS * Math.PI); sx = 1 + 0.14 * a4; sy = 1 - 0.1 * a4;
     } else if (wall < S.petUntil) {
       var a3 = 0.5 + 0.5 * Math.sin(now / 120); sx = 1 + 0.03 * a3; sy = 1 - 0.03 * a3;
     }
@@ -305,7 +320,7 @@
     el.className = cls; el.textContent = text;
     el.style.left = x + 'px'; el.style.top = y + 'px';
     document.body.appendChild(el);
-    setTimeout(function () { el.remove(); }, cls === 'zzz' ? 2400 : 900);
+    setTimeout(function () { el.remove(); }, cls === 'zzz' ? 2400 : cls === 'tap' ? 650 : 900);
   }
 
   // ── 메인 프로세스에서 오는 신호 ─────────────────────────
@@ -340,6 +355,11 @@
     touch();
   });
   paw.onAlert(function () { touch(); if (!S.drag) S.hopAt = performance.now(); });
+  paw.onStretch(function () {
+    if (S.drag) return;
+    S.hopAt = 0; S.stretchAt = performance.now(); touch();
+    spawn('tap', '하암~', S.x + catW() / 2 - 14, S.y + 2 * scale());
+  });
   paw.onBubble(function (b) { bubbleState = b; if (b) touch(); refreshPops(); });
   paw.onShowCard(function () { if (active()) showCard(); });
   paw.onWorking(function (w) { S.workingCount = w.count; if (w.count) touch(); });

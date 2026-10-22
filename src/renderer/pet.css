@@ -40,7 +40,9 @@ body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
 #bars .bar { width: 26px; height: 5px; background: #f3e2d4; border: 1px solid #5a3420; }
 #bars .bar:nth-child(2) > i { background: #7cc0ef; }
 
-.heart, .zzz { position: absolute; pointer-events: none; font-weight: bold; }
+.heart, .zzz, .tap { position: absolute; pointer-events: none; font-weight: bold; }
+.tap { color: #5a3420; font-size: 11px; animation: tap 650ms ease-out forwards; text-shadow: 0 0 2px #fff, 0 0 2px #fff; }
+@keyframes tap { 0% { opacity: 0; transform: translateY(4px) scale(0.6); } 25% { opacity: 1; transform: translateY(0) scale(1.1); } 100% { opacity: 0; transform: translateY(-14px) scale(0.9); } }
 .heart { color: #e5677f; font-size: 18px; animation: rise 900ms ease-out forwards; }
 .zzz { color: #6d6f8a; font-size: 14px; animation: drift 2400ms ease-out forwards; }
 @keyframes rise { from { opacity: 1; transform: translateY(0) scale(0.8); } to { opacity: 0; transform: translateY(-42px) scale(1.15); } }
