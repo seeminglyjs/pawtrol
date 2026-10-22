@@ -58,6 +58,18 @@
     <div class="row">CPU <input type="number" id="cpuT" min="50" max="100"> % 이상이 <input type="number" id="cpuS" min="1" max="120"> 초 이어지면 바쁜 동작</div>
     <div class="row">RAM <input type="number" id="ramT" min="50" max="100"> % 이상이면 피곤한 표정</div>
     <div class="row"><input type="number" id="sleepM" min="1" max="120"> 분 동안 손대지 않고 알림도 없으면 잠</div>
+    <div class="row"><label>상태 카드</label>
+      <span><input type="checkbox" data-card="cpu"> CPU</span>
+      <span><input type="checkbox" data-card="ram"> RAM</span>
+      <span><input type="checkbox" data-card="disk"> 디스크</span>
+      <span><input type="checkbox" data-card="battery"> 배터리</span>
+      <span><input type="checkbox" data-card="claude"> Claude 세션</span>
+    </div>
+    <div class="hint">고양이를 누르면 상태 카드가 6초 동안 보입니다.</div>
+    <div class="row"><label>정기 알림</label>
+      <button data-interval="0">끄기</button><button data-interval="30">30분마다</button><button data-interval="60">1시간마다</button>
+    </div>
+    <div class="row"><input type="checkbox" id="headBars"> 머리 위에 CPU·RAM 막대 항상 표시</div>
   </section>
 
   <section>

@@ -27,6 +27,9 @@
     $('nWorking').checked = s.notify.working; $('nSystem').checked = s.notify.system;
     $('cpuT').value = s.cpuThreshold; $('cpuS').value = s.cpuSeconds; $('ramT').value = s.ramThreshold;
     $('sleepM').value = s.sleepMinutes; $('port').value = s.port; $('login').checked = s.openAtLogin;
+    document.querySelectorAll('[data-card]').forEach(function (c) { c.checked = !!s.statusCard[c.dataset.card]; });
+    document.querySelectorAll('[data-interval]').forEach(function (b) { b.classList.toggle('on', +b.dataset.interval === s.statusInterval); });
+    $('headBars').checked = s.headBars;
     drawPreview();
   }
 
@@ -55,6 +58,11 @@
       $(p[0]).onchange = function () { var v = num(p[0], p[2], p[3]); if (v === null) { fill(); return; } var n = {}; n[p[1]] = v; save(n).then(refreshHook); };
     });
   $('login').onchange = function () { save({ openAtLogin: $('login').checked }); };
+  document.querySelectorAll('[data-card]').forEach(function (c) {
+    c.onchange = function () { var n = {}; n[c.dataset.card] = c.checked; save({ statusCard: n }); };
+  });
+  document.querySelectorAll('[data-interval]').forEach(function (b) { b.onclick = function () { save({ statusInterval: +b.dataset.interval }); }; });
+  $('headBars').onchange = function () { save({ headBars: $('headBars').checked }); };
   $('hookInstall').onclick = function () { paw.installHooks().then(refreshHook); };
   $('hookRemove').onclick = function () { paw.removeHooks().then(refreshHook); };
   paw.onSettings(function (n) { s = n; fill(); });

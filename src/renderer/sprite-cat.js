@@ -20,10 +20,12 @@
     var paint = function (y, a, b, ch) { for (var x = a; x <= b; x++) { var yy = y + OY, xx = x + OX; if (g[yy] && g[yy][xx] && g[yy][xx] !== '.') put(x, y, ch); } };
     var rows = function (list, dy, ch) { list.forEach(function (s) { span(s[0] + dy, s[1], s[2], ch); }); };
 
-    var loaf = !!pose.loaf, dangle = !!pose.dangle;
+    var loaf = !!pose.loaf, dangle = !!pose.dangle, headOnly = !!pose.headOnly;
     var bY = loaf ? 3 : -(pose.lift || 0);
     var ta = pose.tail || 0;
 
+    // 아이콘용(headOnly)은 머리만 그린다
+    if (!headOnly) {
     // 꼬리
     if (loaf) {
       // 바닥을 따라 앞으로 감은 꼬리
@@ -66,6 +68,7 @@
     for (y = 18; y <= 21; y++) paint(y + bY, 29, 29, 's');
     [[20, 21], [24, 25]].forEach(function (p) { for (var yy = 17 + ch0; yy <= 20; yy++) paint(yy + bY, p[0], p[1], 'd'); });
     if (!loaf) paint(25, 26, 27, 'd');
+    }
 
     // 머리: 둥근 찹쌀떡 모양, 볼에 털 뭉치
     var hY = bY + (pose.head || 0) + (loaf ? 1 : 0), pf = pose.puff || 0;
@@ -86,8 +89,10 @@
     rows([[13, 10, 15], [14, 9, 16], [15, 8, 17], [16, 8, 17], [17, 9, 16]], hY, 'w');
     rows([[18, 9, 16]], hY, 'c');
     // 가슴 털 뭉치(턱 아래로 삐죽)
-    rows([[19, 11, 16], [20, 12, 16], [21, 13, 15]], bY, 'w');
-    put(11, 20 + bY, 'w'); put(16, 21 + bY, 'c'); rows([[19, 11, 16]], bY, 'c'); rows([[19, 12, 15]], bY, 'w');
+    if (!headOnly) {
+      rows([[19, 11, 16], [20, 12, 16], [21, 13, 15]], bY, 'w');
+      put(11, 20 + bY, 'w'); put(16, 21 + bY, 'c'); rows([[19, 11, 16]], bY, 'c'); rows([[19, 12, 15]], bY, 'w');
+    }
 
     // 눈: 크고 까만 눈 + 반짝임. 반쯤 감으면 윗눈꺼풀 선, 감으면 ◡
     var bl = pose.blink || 0;

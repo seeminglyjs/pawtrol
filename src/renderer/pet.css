@@ -4,18 +4,20 @@ body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
 #cat { position: absolute; left: 0; top: 0; transform-origin: 50% 100%; will-change: transform, left, top; }
 #cv { display: block; image-rendering: pixelated; }
 
-/* 도트 느낌의 말풍선: 갈색 2px 테두리 + 아래 꼬리 */
-#bubble {
+/* 도트 느낌의 말풍선·상태 카드: 갈색 2px 테두리 + 아래 꼬리 */
+.pop {
   position: absolute; width: 240px; box-sizing: border-box;
   background: #fffdf8; color: #5a3420; border: 2px solid #5a3420; border-radius: 10px;
   padding: 8px 12px; font-size: 13px; line-height: 1.5; word-break: keep-all;
   box-shadow: 3px 3px 0 rgba(90, 52, 32, 0.18);
 }
-#bubble::after {
+.pop::after {
   content: ""; position: absolute; left: var(--tail-x, 50%); bottom: -9px; width: 12px; height: 12px;
   background: #fffdf8; border-right: 2px solid #5a3420; border-bottom: 2px solid #5a3420;
   transform: translateX(-50%) rotate(45deg);
 }
+#msg.link { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(90, 52, 32, 0.45); }
+#msg.link:hover { text-decoration-color: #5a3420; }
 #bar { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px; gap: 8px; }
 #bar > * { white-space: nowrap; }
 #bar button {
@@ -23,6 +25,18 @@ body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
   border-radius: 6px; padding: 1px 8px; cursor: pointer; margin-left: 4px;
 }
 #bar button:hover { background: #ffe6c2; }
+
+#card .title { font-weight: bold; margin-bottom: 4px; }
+#rows { display: grid; grid-template-columns: 60px 1fr auto; gap: 4px 8px; align-items: center; font-size: 12px; }
+#rows .wide { grid-column: span 2; }
+.meter { height: 8px; background: #f3e2d4; border: 1px solid #5a3420; border-radius: 2px; overflow: hidden; }
+.meter > i, .bar > i { display: block; height: 100%; width: 0; background: #8cbf7a; }
+.meter > i.hot, .bar > i.hot { background: #f0a35a; }
+
+/* 머리 위 CPU·RAM 막대 */
+#bars { position: absolute; display: flex; gap: 4px; pointer-events: none; }
+#bars .bar { width: 26px; height: 5px; background: #f3e2d4; border: 1px solid #5a3420; }
+#bars .bar:nth-child(2) > i { background: #7cc0ef; }
 
 .heart, .zzz { position: absolute; pointer-events: none; font-weight: bold; }
 .heart { color: #e5677f; font-size: 18px; animation: rise 900ms ease-out forwards; }

@@ -6,8 +6,9 @@
   <link rel="stylesheet" href="pet.css">
 </head>
 <body>
-  <div id="cat"><canvas id="cv"></canvas></div>
-  <div id="bubble" hidden>
+  <div id="cat" hidden><canvas id="cv"></canvas></div>
+  <div id="bars" hidden><span class="bar"><i id="barCpu"></i></span><span class="bar"><i id="barRam"></i></span></div>
+  <div id="bubble" class="pop" hidden>
     <div id="msg"></div>
     <div id="bar">
       <span id="pos"></span>
@@ -17,7 +18,10 @@
       </span>
     </div>
   </div>
-  <script src="queue.js"></script>
+  <div id="card" class="pop" hidden>
+    <div class="title">지금 PC 상태</div>
+    <div id="rows"></div>
+  </div>
   <script src="sprite-cat.js"></script>
   <script src="pet.js"></script>
 </body>
