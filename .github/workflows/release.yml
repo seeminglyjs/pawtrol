@@ -27,6 +27,15 @@ jobs:
           fi
       - run: npm ci
       - run: npm test
-      - run: npx electron-builder --win --publish always
+      - run: npx electron-builder --win --publish never
+      # 올리기는 gh 로 한다. electron-builder 가 직접 올리면 릴리스를 두 번 동시에 만들려다
+      # 설치 파일·latest.yml 을 빼먹고도 성공으로 끝났다(2026-10-22 v0.1.0, blockmap 만 올라감).
+      - name: Releases 에 올리기
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" --clobber \
+            "dist/pawtrol-Setup-${GITHUB_REF_NAME#v}.exe" "dist/pawtrol-Setup-${GITHUB_REF_NAME#v}.exe.blockmap" dist/latest.yml
