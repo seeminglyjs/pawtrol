@@ -314,15 +314,19 @@ app.whenReady().then(() => {
     const to = neighborOf(from, h.side, screen.getAllDisplays());
     if (to) moveCatTo(to.id, { mode: 'walk', from: h.side === 'right' ? 'left' : 'right', screenY: h.screenY, dir: h.dir });
   });
-  // 끄는 동안에는 모든 모니터 창이 마우스를 잡고, 커서가 있는 모니터로 고양이를 옮긴다
+  // 끄는 동안 커서 위치는 여기서 재서 고양이가 있는 창에 보낸다. 마우스를 누른 창이 마우스를 붙잡고 있어
+  // 옆 모니터 창에는 마우스 신호가 오지 않기 때문이다(2026-10-22 사용자 제보: 옆 모니터 왼쪽 끝에 멈춤).
+  // 놓는 신호(mouseup)는 처음 누른 창이 받아 drag-end 로 알린다. 16ms 는 화면 갱신 1번(60Hz) 간격.
   ipcMain.on('drag-start', (_e, grab) => {
     if (dragging) return;
     dragging = true;
     for (const w of pets.values()) if (!w.isDestroyed()) w.setIgnoreMouseEvents(false);
     broadcast('drag-state', true);
     dragTimer = setInterval(() => {
-      const d = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-      if (d.id !== activeId) moveCatTo(d.id, { mode: 'drag', grabX: grab.x, grabY: grab.y, cursor: screen.getCursorScreenPoint() });
+      const p = screen.getCursorScreenPoint();
+      const d = screen.getDisplayNearestPoint(p);
+      if (d.id !== activeId) moveCatTo(d.id, { mode: 'drag', grabX: grab.x, grabY: grab.y, cursor: p });
+      sendActive('drag-move', p);
     }, 16);
   });
   ipcMain.on('drag-end', endDrag);

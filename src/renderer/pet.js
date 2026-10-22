@@ -273,14 +273,8 @@
       S.hopAt = 0;
       paw.dragStart({ x: S.drag.ox, y: S.drag.oy });
     }
-    if (S.drag) {
-      S.drag.vx = e.clientX - (S.drag.lx === null ? e.clientX : S.drag.lx); S.drag.lx = e.clientX;
-      S.x = e.clientX - S.drag.ox;
-      S.y = Math.min(floorY(), e.clientY - S.drag.oy);
-      touch();
-      return;
-    }
-    if (S.globalDrag) return;
+    // 끄는 동안 위치는 메인 프로세스가 보내는 커서 좌표(drag-move)로만 옮긴다
+    if (S.drag || S.globalDrag) return;
     var hit = onCat(e);
     setIgnore(!(hit || inRect(bubble, e) || inRect(card, e)));
     // 머리 위(스프라이트 위쪽 절반)에서 좌우로 세 번 문지르면 쓰다듬기
@@ -337,6 +331,14 @@
   paw.onLeave(function () { layout.active = false; S.drag = null; down = null; setIgnore(true); refreshPops(); });
   paw.onDrop(function () { S.drag = null; S.fallV = 0; down = null; });
   paw.onDragState(function (on) { S.globalDrag = on; if (!on) { S.ignoring = true; } });
+  paw.onDragMove(function (p) {
+    if (!S.drag || !active()) return;
+    var x = p.x - layout.workArea.x, y = p.y - layout.workArea.y;
+    S.drag.vx = S.drag.lx === null ? 0 : x - S.drag.lx; S.drag.lx = x;
+    S.x = x - S.drag.ox;
+    S.y = Math.min(floorY(), y - S.drag.oy);
+    touch();
+  });
   paw.onAlert(function () { touch(); if (!S.drag) S.hopAt = performance.now(); });
   paw.onBubble(function (b) { bubbleState = b; if (b) touch(); refreshPops(); });
   paw.onShowCard(function () { if (active()) showCard(); });

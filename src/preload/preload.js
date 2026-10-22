@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('paw', {
   onLeave: on('leave'),
   onDrop: on('drop'),
   onDragState: on('drag-state'),
+  onDragMove: on('drag-move'),
   onAlert: on('alert'),
   onBubble: on('bubble'),
   onShowCard: on('show-card'),
