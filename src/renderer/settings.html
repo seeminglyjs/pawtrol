@@ -89,6 +89,13 @@
     <div class="row">알림 받는 포트 <input type="number" id="port" min="1024" max="65535" style="width:72px"></div>
     <div class="row"><input type="checkbox" id="login"> 윈도우를 켤 때 함께 실행</div>
   </section>
+
+  <section>
+    <h2>업데이트</h2>
+    <div class="row">지금 버전 <span id="appVersion"></span> <button id="updateCheck">지금 확인</button></div>
+    <div class="hint" id="updateState"></div>
+    <div class="row"><input type="checkbox" id="autoUpdate"> 새 버전을 확인해 받아 두고 알려 주기</div>
+  </section>
 </main>
 <script src="sprite-cat.js"></script>
 <script src="settings.js"></script>

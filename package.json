@@ -3,12 +3,51 @@
   "version": "0.1.0",
   "private": true,
   "description": "바탕화면 도트 고양이가 Claude Code 세션 상태와 PC 상태를 알려 주는 데스크톱 펫",
+  "author": "seeminglyjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seeminglyjs/pawtrol.git"
+  },
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "icon": "node scripts/make-icon.js",
+    "dist": "electron-builder --win --publish never"
+  },
+  "build": {
+    "appId": "com.seeminglyjs.pawtrol",
+    "productName": "pawtrol",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png",
+      "artifactName": "pawtrol-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "seeminglyjs",
+      "repo": "pawtrol",
+      "releaseType": "release"
+    }
   },
   "devDependencies": {
-    "electron": "44.7.0"
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
   }
 }

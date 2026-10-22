@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld('paw', {
   status: () => ipcRenderer.invoke('status'),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   setSettings: patch => ipcRenderer.invoke('set-settings', patch),
+  appInfo: () => ipcRenderer.invoke('app-info'),
+  checkUpdate: () => ipcRenderer.invoke('check-update'),
   hookStatus: () => ipcRenderer.invoke('hook-status'),
   installHooks: () => ipcRenderer.invoke('install-hooks'),
   removeHooks: () => ipcRenderer.invoke('remove-hooks'),

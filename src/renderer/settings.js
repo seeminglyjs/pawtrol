@@ -27,6 +27,7 @@
     $('nWorking').checked = s.notify.working; $('nSystem').checked = s.notify.system;
     $('cpuT').value = s.cpuThreshold; $('cpuS').value = s.cpuSeconds; $('ramT').value = s.ramThreshold;
     $('sleepM').value = s.sleepMinutes; $('port').value = s.port; $('login').checked = s.openAtLogin;
+    $('autoUpdate').checked = s.autoUpdate;
     document.querySelectorAll('[data-card]').forEach(function (c) { c.checked = !!s.statusCard[c.dataset.card]; });
     document.querySelectorAll('[data-interval]').forEach(function (b) { b.classList.toggle('on', +b.dataset.interval === s.statusInterval); });
     $('headBars').checked = s.headBars;
@@ -62,6 +63,22 @@
       $(p[0]).onchange = function () { var v = num(p[0], p[2], p[3]); if (v === null) { fill(); return; } var n = {}; n[p[1]] = v; save(n).then(refreshHook); };
     });
   $('login').onchange = function () { save({ openAtLogin: $('login').checked }); };
+  $('autoUpdate').onchange = function () { save({ autoUpdate: $('autoUpdate').checked }); };
+  function updateText(t) { $('updateState').textContent = t; }
+  paw.appInfo().then(function (i) {
+    $('appVersion').textContent = 'v' + i.version;
+    if (!i.packaged) { $('updateCheck').disabled = true; updateText('개발 실행(npm start)에서는 새 버전을 확인하지 않습니다.'); }
+    else if (i.ready) updateText('새 버전 v' + i.ready + ' 준비 완료. 고양이 말풍선을 누르면 바뀝니다.');
+  });
+  $('updateCheck').onclick = function () {
+    $('updateCheck').disabled = true; updateText('확인 중…');
+    paw.checkUpdate().then(function (r) {
+      $('updateCheck').disabled = false;
+      if (!r.ok) updateText('확인하지 못했습니다. 인터넷 연결을 확인해 주세요.');
+      else if (r.available) updateText('새 버전 v' + r.version + ' 받는 중. 다 받으면 고양이가 알려 줍니다.');
+      else updateText('최신 버전입니다.');
+    });
+  };
   document.querySelectorAll('[data-card]').forEach(function (c) {
     c.onchange = function () { var n = {}; n[c.dataset.card] = c.checked; save({ statusCard: n }); };
   });

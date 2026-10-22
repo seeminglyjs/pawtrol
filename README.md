@@ -46,7 +46,29 @@ curl -s -H "Content-Type: application/json" -d '{"text":"dev 배포 끝","key":"
 - 마우스·키보드를 쉬지 않고 50분 쓰면 기지개를 켜며 휴식을 권합니다. 5분 넘게 손을 떼면 쉰 것으로 봅니다.
 - 세 기준값은 가정이며 설정 창 "기타 알림"에서 바꿉니다.
 
-## 실행
+## 설치
+
+[Releases](https://github.com/seeminglyjs/pawtrol/releases/latest) 에서 `pawtrol-Setup-<버전>.exe` 를 받아 실행합니다. 묻는 것 없이 이 사용자 계정에만 깔리고 바로 켜집니다.
+
+- 코드 서명을 하지 않은 설치 파일이라 처음에 "Windows의 PC 보호" 창이 뜰 수 있습니다. "추가 정보 → 실행"을 누릅니다.
+- 지울 때는 윈도우 설정 → 앱에서 pawtrol 을 제거합니다. 설정(`%APPDATA%\pawtrol`)과 Claude 훅은 남으니, 훅을 빼려면 먼저 설정 창에서 "제거"를 누릅니다.
+
+## 새 버전
+
+설치한 앱은 켠 뒤 30초, 그 뒤 6시간마다 Releases 를 확인합니다. 새 버전이 있으면 뒤에서 받아 두고 고양이가 "새 버전 v… 준비 완료!" 말풍선을 띄웁니다.
+누르면 앱을 껐다 켜며 바뀌고, 그냥 두면 다음에 앱을 끌 때 바뀝니다. 설정 창 "업데이트"에서 지금 확인하거나 끌 수 있습니다. 확인 간격은 가정입니다.
+
+### 릴리스 올리기(개발자)
+
+```bash
+npm version patch
+git push --follow-tags
+```
+
+`v*` 태그가 올라가면 GitHub Actions(`.github/workflows/release.yml`)가 검사를 돌리고 설치 파일과 `latest.yml` 을 Releases 에 올립니다. 태그와 `package.json` 버전이 다르면 멈춥니다.
+내 PC 에서 설치 파일만 만들어 보려면 `npm run dist`(결과는 `dist/`). 고양이 그림을 바꿨으면 `npm run icon` 으로 설치 파일 아이콘(`build/icon.png`)도 다시 만듭니다.
+
+## 개발 실행
 
 ```bash
 npm install

@@ -16,6 +16,7 @@ const DEFAULTS = {
   sleepMinutes: 5, // 가정(검증 필요)
   port: 47321, // 플레이스홀더(미확정, 근거 필요): 흔한 개발 포트와 겹치지 않는 높은 번호에서 고름
   openAtLogin: false,
+  autoUpdate: true, // 새 버전을 확인해 받아 두고 고양이가 알려 준다(설치한 앱에서만)
   statusCard: { cpu: true, ram: true, disk: true, battery: true, claude: true }, // 고양이를 누르면 보이는 상태 카드 항목
   statusInterval: 0, // 정기 상태 알림 간격(분). 0 = 끄기 · 2026-10-22 사용자 결정
   headBars: false, // 머리 위 CPU·RAM 막대 상시 표시 · 2026-10-22 사용자 결정

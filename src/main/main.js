@@ -13,6 +13,7 @@ const { createSessionIndex, sessionLink } = require('./claude-sessions');
 const { catIcon, trayIcon } = require('./icon');
 const { createQueue } = require('../renderer/queue');
 const { createRestTracker } = require('./rest');
+const { createUpdater } = require('./updater');
 
 // 화면 전체를 덮는 투명 고양이 창 뒤에 있는 창(설정 창)을 "가려졌다"고 보고 그리기를 멈추는 크로미엄 기능을 끈다.
 // 설정 창이 빈 화면으로 보인 원인 후보다(2026-10-22 사용자 제보, 재현은 못 함).
@@ -35,6 +36,7 @@ let lastStatus = { cpu: 0, ram: 0, cpuHigh: false, ramHigh: false };
 let diskFreeGB = null;
 let awayStart = null, awayCount = 0; // 잠금·절전을 시작한 시각과 그사이 온 알림 수
 let restTracker = null;
+let updater = null;
 
 // 응답 끝 신호를 못 받은 세션(창을 닫음 · 강제 종료)이 영원히 "일하는 중"으로 남지 않게 지우는 시간. 가정(검증 필요).
 const WORKING_EXPIRE_MS = 30 * 60 * 1000;
@@ -168,6 +170,8 @@ function openAction(item) {
     removeNotify(item.key);
   } else if (item.action.type === 'taskmgr') {
     spawn('taskmgr.exe', [], { detached: true, stdio: 'ignore' }).unref();
+  } else if (item.action.type === 'update') {
+    updater.install();
   }
 }
 
@@ -292,6 +296,7 @@ function applySettings(s) {
   sysmon.setOptions({ cpuThreshold: s.cpuThreshold, cpuSeconds: s.cpuSeconds, ramThreshold: s.ramThreshold });
   restTracker.setOptions({ restMinutes: s.rest.minutes, breakMinutes: s.rest.breakMinutes });
   app.setLoginItemSettings({ openAtLogin: !!s.openAtLogin });
+  updater.setEnabled(app.isPackaged && s.autoUpdate);
 }
 
 app.whenReady().then(() => {
@@ -319,6 +324,13 @@ app.whenReady().then(() => {
     sendWorking();
   }, 60 * 1000);
   setInterval(() => { checkFocus().catch(() => {}); }, FOCUS_POLL_MS);
+  // 새 버전: 설치한 앱에서만 확인한다(npm start 로 띄운 개발 실행은 받을 설치 파일이 없다)
+  updater = createUpdater({
+    updater: require('electron-updater').autoUpdater,
+    enabled: app.isPackaged && s.autoUpdate,
+    onReady: v => notify({ key: 'update', kind: 'update', action: { type: 'update' }, text: `새 버전 v${v} 준비 완료! 누르면 다시 켜서 바꿔요.` }),
+    log: DEBUG ? console.log : undefined,
+  });
   // 정기 상태 알림: 설정한 간격(분)마다 상태 카드를 띄운다. 0 이면 끔
   let lastCardAt = Date.now();
   setInterval(() => {
@@ -396,6 +408,8 @@ app.whenReady().then(() => {
     }
     return next;
   });
+  ipcMain.handle('app-info', () => ({ version: app.getVersion(), packaged: app.isPackaged, ready: updater.readyVersion() }));
+  ipcMain.handle('check-update', () => (app.isPackaged ? updater.check() : { ok: false, error: 'dev' }));
   ipcMain.handle('hook-status', () => hookStatus({ port: store.get().port }));
   ipcMain.handle('install-hooks', () => { installHooks({ port: store.get().port }); store.set({ hooksOptOut: false }); return hookStatus({ port: store.get().port }); });
   ipcMain.handle('remove-hooks', () => { removeHooks({}); store.set({ hooksOptOut: true }); return hookStatus({ port: store.get().port }); });
